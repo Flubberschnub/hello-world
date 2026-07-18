@@ -25,6 +25,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   assert.strictEqual(G.state.players[0].board[unitCard.era][0],null,'slot 1 must remain empty');
 
   const deployed=G.state.players[0].board[unitCard.era][1];
+  deployed.summonedTurn=-999;
   assert(G.commandUnit(0,deployed.uid,'Anchor'),'unit command should be accepted');
   assert(G.previewCombat(0).some(x=>x.includes('anchors')),'combat forecast should describe Anchor');
 
