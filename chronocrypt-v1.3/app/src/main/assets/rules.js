@@ -2,6 +2,20 @@
 const G=window.ChronoGame,ERAS=['Past','Present','Future'];
 const cultivator=G.data.cards.find(c=>c.name==='Ruin Cultivator');
 if(cultivator){cultivator.text='Whenever another allied unit is erased, draw a card once per turn.';cultivator.effect='allyDeathDraw';}
+const originalStart=G.start;
+function ensureCauses(ids,doctrine){
+ if(!Array.isArray(ids)||ids.length!==24)return ids;
+ const deck=ids.slice(),causes=G.data.cards.filter(c=>c.type==='cause'&&(c.doctrine===doctrine||c.doctrine==='neutral'));
+ let count=deck.filter(id=>G.card(id)&&G.card(id).type==='cause').length;
+ for(let i=0;count<2&&i<causes.length;i++){
+  if(deck.filter(id=>id===causes[i].id).length>=2)continue;
+  let replace=deck.length-1;
+  while(replace>=0&&G.card(deck[replace])&&G.card(deck[replace]).type==='cause')replace--;
+  if(replace<0)break;deck[replace]=causes[i].id;count++;
+ }
+ return deck;
+}
+G.start=function(opts={}){const next=Object.assign({},opts);next.p1Deck=ensureCauses(next.p1Deck,next.p1Doctrine||'preservation');next.p2Deck=ensureCauses(next.p2Deck,next.p2Doctrine||'revision');return originalStart(next);};
 function def(u){return u&&u.cardId?G.card(u.cardId):null}
 function recalcScribes(){
  for(let o=0;o<2;o++)for(const u of G.allUnits(o)){if(u.scribePenalty){u.attack+=u.scribePenalty;u.scribePenalty=0}}
