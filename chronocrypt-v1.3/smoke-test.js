@@ -1,6 +1,6 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 global.window=global;
-for(const file of['cards.js','effects.js','engine.js']){
+for(const file of['cards.js','effects.js','engine.js','rules.js']){
   vm.runInThisContext(fs.readFileSync(__dirname+'/app/src/main/assets/'+file,'utf8'),{filename:file});
 }
 const G=global.ChronoGame;
@@ -44,5 +44,5 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   assert(p.events[0].closed,'playing the named Cause must close its matching loop');
   assert(p.paradox>0||p.forkReady,'closing a loop must award Paradox progress');
 
-  console.log('Chronocrypt smoke test passed: 72 cards, explicit slot targeting, commands, Contingencies, and causal closure.');
+  console.log('Chronocrypt smoke test passed: 72 cards, explicit slot targeting, commands, Contingencies, persistent rules, and causal closure.');
 })().catch(err=>{console.error(err);process.exit(1)});
