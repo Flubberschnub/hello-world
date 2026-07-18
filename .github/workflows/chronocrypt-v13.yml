@@ -1,0 +1,56 @@
+name: Chronocrypt v1.3 Build
+
+on:
+  pull_request:
+    paths:
+      - 'chronocrypt-v1.3/**'
+      - '.github/workflows/chronocrypt-v13.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate JavaScript syntax
+        run: |
+          node --check chronocrypt-v1.3/app/src/main/assets/cards.js
+          node --check chronocrypt-v1.3/app/src/main/assets/effects.js
+          node --check chronocrypt-v1.3/app/src/main/assets/engine.js
+          node --check chronocrypt-v1.3/app/src/main/assets/app.js
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK
+        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build APK
+        run: gradle -p chronocrypt-v1.3 --no-daemon assembleDebug
+
+      - name: Verify APK
+        run: |
+          APK=chronocrypt-v1.3/app/build/outputs/apk/debug/app-debug.apk
+          $ANDROID_HOME/build-tools/35.0.0/zipalign -c -P 16 -v 4 "$APK"
+          $ANDROID_HOME/build-tools/35.0.0/apksigner verify --verbose --print-certs "$APK"
+          cp "$APK" Chronocrypt-Causal-War-v1.3.0.apk
+          sha256sum Chronocrypt-Causal-War-v1.3.0.apk > Chronocrypt-Causal-War-v1.3.0-SHA256.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Chronocrypt-Causal-War-v1.3.0
+          path: |
+            Chronocrypt-Causal-War-v1.3.0.apk
+            Chronocrypt-Causal-War-v1.3.0-SHA256.txt
+          if-no-files-found: error
