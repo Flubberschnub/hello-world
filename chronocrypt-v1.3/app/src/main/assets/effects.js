@@ -74,7 +74,7 @@ async function mature(api,unit,owner){
 }
 async function trigger(api,owner,trigger,ctx){
  const pl=api.state.players[owner];const idx=pl.prepared.findIndex(c=>c.trigger===trigger);if(idx<0)return ctx;
- const card=pl.prepared.splice(idx,1)[0];pl.discard.push(card);api.announce(card.name.toUpperCase());api.log(`${pl.name} triggered ${card.name}.`);const e=card.effect;
+ const prepared=pl.prepared.splice(idx,1)[0],def=api.card(prepared.cardId);pl.discard.push(prepared);api.announce(def.name.toUpperCase());api.log(`${pl.name} triggered ${def.name}.`);const e=def.effect;
  if(e==='saveUnit'&&ctx.unit){ctx.preventDeath=true;ctx.unit.hp=Math.max(1,ctx.unit.hp);ctx.unit.guard=(ctx.unit.guard||0)+1;}
  if(e==='preventBacklash'&&ctx.event){ctx.prevent=true;ctx.event.deadline++;}
  if(e==='stealParadox'){ctx.steal=(ctx.steal||0)+1;pl.paradox++;}
@@ -83,7 +83,7 @@ async function trigger(api,owner,trigger,ctx){
  if(e==='damageBuffDraw'&&ctx.unit){ctx.unit.attack++;api.draw(owner,1);api.emit('buff',{unit:ctx.unit,text:'+1 ATK'});}
  if(e==='revengeDamage'&&ctx.unit){const opp=api.opposingUnit(owner,ctx.unit.era,ctx.unit.slot);if(opp)await api.damageUnit(1-owner,opp,ctx.unit.attack,{sourceOwner:owner});}
  if(e==='forkTax')api.damageCore(1-owner,3,{sourceOwner:owner});
- if(e==='reduceCore')ctx.amount=Math.max(0,ctx.amount-num(String(e).split(':')[1],1));
+ if(String(e).startsWith('reduceCore'))ctx.amount=Math.max(0,ctx.amount-num(String(e).split(':'),1,2));
  if(e==='targetGuard'&&ctx.unit)api.addGuard(ctx.unit,1,owner);
  return ctx;
 }
